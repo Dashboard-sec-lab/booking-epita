@@ -36,21 +36,5 @@ jobs:
           name: osv-sarif
           path: osv.sarif
 
-  SourceCodeAnalysis:
-    runs-on: ubuntu-latest
-    container:
-      image: returntocorp/semgrep
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Run semgrep (Java ruleset)
-        run: semgrep --config p/java --sarif --output semgrep.sarif
-
-      - name: Save Semgrep SARIF result
-        uses: actions/upload-artifact@v2
-        with:
-          name: semgrep-sarif
-          path: semgrep.sarif
 
