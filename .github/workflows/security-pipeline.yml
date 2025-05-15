@@ -2,8 +2,13 @@ name: Daily Security Pipeline
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Tous les jours à 3h du matin
+    - cron: '0 3 * * *'
   workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
 
 jobs:
   DependenciesAnalysis:
@@ -20,7 +25,7 @@ jobs:
 
       - name: Run OSV Scanner
         run: |
-          osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif || echo "No SARIF output"
+          osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif || echo "No SARIF output generated"
 
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
