@@ -2,23 +2,31 @@ name: Daily Security Pipeline
 
 on:
   schedule:
-    - cron: '0 3 * * *' 
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
   DependenciesAnalysis:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install OSV Scanner
+        run: |
+          curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner-linux-amd64 -o osv-scanner
+          chmod +x osv-scanner
+          sudo mv osv-scanner /usr/local/bin/
+
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action@v1
+        run: |
+          osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif
+        continue-on-error: true
 
       - name: Upload SARIF report
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: results.sarif
+          sarif_file: osv.sarif
 
   SourceCodeAnalysis:
     runs-on: ubuntu-latest
@@ -26,14 +34,14 @@ jobs:
       image: returntocorp/semgrep
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Run semgrep (Java ruleset)
         run: semgrep --config p/java --sarif --output semgrep.sarif
 
       - name: Upload SARIF report
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: semgrep.sarif
 
