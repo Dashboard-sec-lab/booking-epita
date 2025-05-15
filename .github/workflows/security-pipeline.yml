@@ -49,7 +49,7 @@ jobs:
         run: semgrep --config p/java --sarif --output semgrep.sarif
 
       - name: Save Semgrep SARIF result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: semgrep-sarif
           path: semgrep.sarif
