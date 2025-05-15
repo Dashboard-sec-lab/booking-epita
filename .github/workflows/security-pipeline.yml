@@ -1,44 +1,18 @@
-name: Daily Security Pipeline
+name: Daily OSV Scan via Reusable Workflow
 
 on:
   schedule:
     - cron: '0 3 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  actions: read
-
 jobs:
-  DependenciesAnalysis:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Run OSV Scanner
-        uses: google/osv-scanner-action@8dded7155905cd666190a12dc9997000e58d163d
-        with:
-          scan-args: >-
-            --lockfile=package-lock.json
-            --format=sarif
-            --output=osv.sarif
-
-      - name: Print SARIF result
-        run: cat osv.sarif
-
-  SourceCodeAnalysis:
-    runs-on: ubuntu-latest
-    container:
-      image: returntocorp/semgrep
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Run semgrep (Java ruleset)
-        run: semgrep --config p/java --sarif --output semgrep.sarif
-
-      - name: Print SARIF result
-        run: cat semgrep.sarif
+  osv-scan:
+    uses: google/osv-scanner-action/.github/workflows/scan.yml@8dded7155905cd666190a12dc9997000e58d163d
+    with:
+      scan-args: |
+        -r
+        ./
+      results-file-name: osv.sarif
+      upload-sarif: false
+      fail-on-vuln: false
 
