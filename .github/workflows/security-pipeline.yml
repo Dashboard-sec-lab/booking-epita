@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
   contents: read
+  actions: read
   security-events: write
 
 jobs:
@@ -21,13 +21,30 @@ jobs:
         uses: google/osv-scanner-action/osv-scanner-action@8dded7155905cd666190a12dc9997000e58d163d
         with:
           scan-args: >-
-            --output=results.sarif
+            --output=osv-results.sarif
             --format=sarif
             app/gradle.lockfile
         continue-on-error: true
 
-      - name: Upload SARIF to Code Scanning
+      - name: Upload OSV SARIF to Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: results.sarif
+          sarif_file: osv-results.sarif
+
+  semgrep-scan:
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Semgrep on VulnerableController
+        run: semgrep --config p/java app/src/main/java/dev/xdbe/booking/controller/VulnerableController.java --sarif --output=semgrep-results.sarif
+
+      - name: Upload Semgrep SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
 
