@@ -2,7 +2,7 @@ name: Daily Security Pipeline
 
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 3 * * *' # Tous les jours à 3h du matin
   workflow_dispatch:
 
 jobs:
@@ -12,16 +12,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install OSV Scanner
+      - name: Download OSV Scanner v2.0.2
         run: |
-          curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner-linux-amd64 -o osv-scanner
+          curl -sSL https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64 -o osv-scanner
           chmod +x osv-scanner
           sudo mv osv-scanner /usr/local/bin/
 
       - name: Run OSV Scanner
         run: |
-          osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif
-        continue-on-error: true
+          osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif || echo "No SARIF output"
 
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
