@@ -16,25 +16,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Download OSV Scanner v2.0.2
-        run: |
-          curl -sSL https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64 -o osv-scanner
-          chmod +x osv-scanner
-          sudo mv osv-scanner /usr/local/bin/
-
       - name: Run OSV Scanner
-        run: |
-          if [ -f package-lock.json ]; then
-            osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif
-          else
-            echo '{"version": "2.1.0", "runs": []}' > osv.sarif
-          fi
-
-      - name: Save SARIF result
-        uses: actions/upload-artifact@v2
+        uses: google/osv-scanner-action@v2.02
         with:
-          name: osv-sarif
-          path: osv.sarif
+          scan-args: >-
+            --lockfile=package-lock.json
+            --format=sarif
+            --output=osv.sarif
 
+      - name: Print SARIF result
+        run: cat osv.sarif
 
+  SourceCodeAnalysis:
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run semgrep (Java ruleset)
+        run: semgrep --config p/java --sarif --output semgrep.sarif
+
+      - name: Print SARIF result
+        run: cat semgrep.sarif
 
