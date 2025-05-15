@@ -25,7 +25,11 @@ jobs:
 
       - name: Run OSV Scanner
         run: |
-          osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif || echo "No SARIF output generated"
+          if [ -f package-lock.json ]; then
+            osv-scanner --lockfile=package-lock.json --format=sarif > osv.sarif
+          else
+            echo '{"version": "2.1.0", "runs": []}' > osv.sarif
+          fi
 
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
