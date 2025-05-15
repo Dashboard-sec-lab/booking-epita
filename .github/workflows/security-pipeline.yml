@@ -17,25 +17,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - name: Run OSV Scanner
+      - name: Run OSV Scanner on gradle.lockfile
         uses: google/osv-scanner-action/osv-scanner-action@8dded7155905cd666190a12dc9997000e58d163d
         with:
           scan-args: >-
             --output=results.json
             --format=json
-            -r
-            ./
+            app/gradle.lockfile
         continue-on-error: true
 
-      - name: Run OSV Reporter
-        uses: google/osv-scanner-action/osv-reporter-action@8dded7155905cd666190a12dc9997000e58d163d
-        with:
-          scan-args: >-
-            --output=results.sarif
-            --new=results.json
-            --gh-annotations=false
-            --fail-on-vuln=false
-
-      - name: Print SARIF
-        run: cat results.sarif
+      - name: Print OSV JSON output
+        run: cat results.json
 
